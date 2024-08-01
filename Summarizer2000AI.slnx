@@ -2,4 +2,5 @@
   <Properties Name="Visual Studio">
     <Property Name="OpenWith" Value="17" />
   </Properties>
+  <Project Path="src\web\WebApi\WebApi.csproj" Type="C#" />
 </Solution>
