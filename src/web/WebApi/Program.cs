@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,27 +31,8 @@ app.MapGet("/api/weatherforecast", async () =>
 
     var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
 
-    var prompt = @"
-    You are an intelligent assistant that summarizes text. Summarize the following input text in a concise and informative manner, highlighting the main points:
- 
-    Input:
-    {{input}}
- 
-    Summary:
-    "
-    ;
 
     var text = await File.ReadAllTextAsync("Sample.txt");
-
-    var client = new OpenAIClient(new Uri("https://summarizer2000ai.openai.azure.com/"), new AzureKeyCredential("aacf442553ac43be9dace87e93a94f96"));
-
-    // Create the request
-    var opt = new CompletionsOptions("summarizer2000ai", [prompt.Replace("{{input}}", text)]);
-    opt.MaxTokens  = 100;
-
-    var summaryResult = await client.GetCompletionsAsync(opt);
-
-
 
     //var result = await kernel.InvokeAsync(summarize, new() { ["input"] = text });
 
@@ -60,8 +42,20 @@ app.MapGet("/api/weatherforecast", async () =>
     //var request = new CompletionRequest(prompt, new { input = inputText });
     //var result = await _kernel.Completions.CreateCompletionAsync(request);
 
+    kernel.Plugins.AddFromType<TextSourcePlugin>("TextSourcePlugin");
 
-    return Results.Ok(summaryResult.Value.Choices[0].Text.Trim());
+    var history = new ChatHistory();
+    history.AddUserMessage($"Summarize following text: {text}");
+
+    var result = await chatCompletionService.GetChatMessageContentsAsync(
+        history,
+        executionSettings: new OpenAIPromptExecutionSettings
+        {
+            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+        },
+        kernel: kernel);
+
+    return Results.Ok(result);
 })
 .WithName("GetWeatherForecast")
 .WithOpenApi();
