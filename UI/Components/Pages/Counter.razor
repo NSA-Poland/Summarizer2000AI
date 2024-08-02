@@ -1,0 +1,24 @@
+﻿@page "/counter"
+@rendermode InteractiveServer
+@inject Summarizer2000AIClient apiClient;
+
+<PageTitle>Summarizer2000AI</PageTitle>
+
+<h1>Summarizer2000AI</h1>
+
+<label for="inputText">Enter long text:</label>
+<textarea id="inputText" @bind="inputText" rows="5" class="form-control"></textarea>
+
+<button class="btn btn-primary" @onclick="Summarize">Click me I like being clicked</button>
+
+<p>Summarized result: @summarizedText</p>
+
+@code {
+    private string inputText = string.Empty;
+    private string summarizedText = string.Empty;
+
+    private async Task Summarize()
+    {
+        summarizedText = await apiClient.GetSummarize(inputText);
+    }
+}

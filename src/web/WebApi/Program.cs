@@ -20,6 +20,11 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
+app.MapPost("api/summarize", async () =>
+{
+    return Results.Ok("wdaawdwdadwa");
+});
+
 app.MapGet("/api/weatherforecast", async () =>
 {
     var kernelBuilder = Kernel.CreateBuilder().AddAzureOpenAIChatCompletion(
