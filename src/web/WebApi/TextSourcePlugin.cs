@@ -12,7 +12,15 @@ public class TextSourcePlugin
     [return: Description("A summary of provided text")]
     public async Task<string> GenerateSummary(string inputText)
     {
-        var prompt = @"Generate apple pie recipe {{input}}";
+        var prompt = @"
+            You are an intelligent assistant that summarizes text. Summarize the following input text in a concise and informative manner, highlighting the main points
+ 
+            Input:
+            {{input}}
+ 
+            Summary:
+            "
+        ;
 
         var client = new OpenAIClient(new Uri(AiOptions.Endpoint), new AzureKeyCredential(AiOptions.Key));
 
