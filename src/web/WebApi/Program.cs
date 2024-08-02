@@ -7,6 +7,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using WebApi;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,39 +21,24 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
-app.MapPost("api/summarize", async () =>
-{
-    return Results.Ok("wdaawdwdadwa");
-});
-
-app.MapGet("/api/weatherforecast", async () =>
+app.MapPost("api/summarize", async ([FromBody] TextToSummarize textToSummarize) =>
 {
     var kernelBuilder = Kernel.CreateBuilder().AddAzureOpenAIChatCompletion(
-        deploymentName: "summarizer2000ai",
-        endpoint: "https://summarizer2000ai.openai.azure.com/",
-        apiKey: "aacf442553ac43be9dace87e93a94f96"
-        );
+    deploymentName: AiOptions.DeploymentName,
+    endpoint: AiOptions.Endpoint,
+    apiKey: AiOptions.Key
+    );
     var kernel = kernelBuilder.Build();
 
     var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
 
 
-    var text = await File.ReadAllTextAsync("Sample.txt");
-
-    //var result = await kernel.InvokeAsync(summarize, new() { ["input"] = text });
-
-    // Add a plugin (the LightsPlugin class is defined below)
-    //kernel.Plugins.AddFromType<LightsPlugin>("Lights");
-
-    //var request = new CompletionRequest(prompt, new { input = inputText });
-    //var result = await _kernel.Completions.CreateCompletionAsync(request);
-
     kernel.Plugins.AddFromType<TextSourcePlugin>("TextSourcePlugin");
 
     var history = new ChatHistory();
-    history.AddUserMessage($"Summarize following text: {text}");
+    history.AddUserMessage($"Summarize following text: {textToSummarize.Text}");
 
-    var result = await chatCompletionService.GetChatMessageContentsAsync(
+    var result = await chatCompletionService.GetChatMessageContentAsync(
         history,
         executionSettings: new OpenAIPromptExecutionSettings
         {
@@ -60,9 +46,14 @@ app.MapGet("/api/weatherforecast", async () =>
         },
         kernel: kernel);
 
-    return Results.Ok(result);
+    return Results.Ok(result.Content);
 })
-.WithName("GetWeatherForecast")
+.WithName("Summarize")
+.WithDescription("Summarize description")
+.WithSummary("Summarize summary")
 .WithOpenApi();
 
 app.Run();
+
+
+public record TextToSummarize(string Text);

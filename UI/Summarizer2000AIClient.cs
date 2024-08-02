@@ -1,5 +1,6 @@
 ﻿using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
 
 namespace UI
 {
@@ -14,7 +15,8 @@ namespace UI
 
         public async Task<string> GetSummarize(string textToSummarize)
         {
-            var result = await _httpClient.PostAsync("api/summarize", new StringContent(textToSummarize, Encoding.UTF8, MediaTypeNames.Application.Json));
+            var content = new StringContent(JsonSerializer.Serialize(new { Text = textToSummarize }), Encoding.UTF8, MediaTypeNames.Application.Json);
+            var result = await _httpClient.PostAsync("api/summarize", content);
             return await result.Content.ReadAsStringAsync();
         }
     }

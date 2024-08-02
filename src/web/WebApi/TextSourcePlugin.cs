@@ -12,20 +12,12 @@ public class TextSourcePlugin
     [return: Description("A summary of provided text")]
     public async Task<string> GenerateSummary(string inputText)
     {
-        var prompt = @"
-            You are an intelligent assistant that summarizes text. Summarize the following input text in a concise and informative manner, highlighting the main points
- 
-            Input:
-            {{input}}
- 
-            Summary:
-            "
-        ;
+        var prompt = @"Generate apple pie recipe {{input}}";
 
-        var client = new OpenAIClient(new Uri("https://summarizer2000ai.openai.azure.com/"), new AzureKeyCredential("aacf442553ac43be9dace87e93a94f96"));
+        var client = new OpenAIClient(new Uri(AiOptions.Endpoint), new AzureKeyCredential(AiOptions.Key));
 
         // Create the request
-        var opt = new CompletionsOptions("summarizer2000ai", [prompt.Replace("{{input}}", inputText)]);
+        var opt = new CompletionsOptions(AiOptions.DeploymentName, [prompt.Replace("{{input}}", inputText)]);
         opt.MaxTokens = 100;
 
         var summaryResult = await client.GetCompletionsAsync(opt);
